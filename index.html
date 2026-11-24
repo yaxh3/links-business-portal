@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BusinessOS — Operations Portal</title>
+<style>
+:root{--bg:#f5f7fb;--panel:#fff;--text:#172033;--muted:#6b7280;--line:#e6e9ef;--accent:#111827;--good:#16834b;--warn:#b7791f;--bad:#c53030}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+.app{display:flex;min-height:100vh}.side{width:245px;background:#111827;color:#fff;padding:22px 14px;position:fixed;inset:0 auto 0 0}.brand{font-size:20px;font-weight:800;padding:8px 12px 25px}.brand span{color:#9ca3af;font-weight:500}.nav button{width:100%;border:0;background:transparent;color:#cbd5e1;text-align:left;padding:11px 13px;border-radius:9px;margin:2px 0;font-size:14px;cursor:pointer}.nav button:hover,.nav button.active{background:#263244;color:#fff}.main{margin-left:245px;width:calc(100% - 245px);padding:28px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.top h1{margin:0;font-size:26px}.top p{margin:6px 0 0;color:var(--muted);font-size:13px}.actions{display:flex;gap:8px}.btn{border:1px solid var(--line);background:#fff;padding:9px 13px;border-radius:8px;cursor:pointer;font-weight:600}.btn.primary{background:#111827;color:#fff;border-color:#111827}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}.label{font-size:12px;color:var(--muted)}.value{font-size:25px;font-weight:800;margin-top:8px}.sub{font-size:11px;color:var(--muted);margin-top:6px}.grid2{display:grid;grid-template-columns:1.3fr .7fr;gap:14px;margin-top:14px}.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}.panel h3{margin:0 0 15px;font-size:15px}.table{width:100%;border-collapse:collapse;font-size:13px}.table th{text-align:left;color:var(--muted);font-weight:600;background:#fafbfc}.table th,.table td{padding:11px;border-bottom:1px solid var(--line)}.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#eef2f7}.badge.good{color:var(--good);background:#e9f7ef}.badge.warn{color:var(--warn);background:#fff6df}.badge.bad{color:var(--bad);background:#fdecec}.page{display:none}.page.active{display:block}.toolbar{display:flex;gap:8px;margin-bottom:14px}.search{flex:1;border:1px solid var(--line);padding:10px 12px;border-radius:8px}.form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.form label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}.form input,.form select,.form textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:7px}.form textarea{min-height:90px}.full{grid-column:1/-1}.empty{padding:30px;text-align:center;color:var(--muted)}.notice{padding:11px 13px;background:#f3f4f6;border-radius:8px;font-size:12px;color:#4b5563;margin-bottom:14px}
+@media(max-width:900px){.side{width:190px}.main{margin-left:190px;width:calc(100% - 190px)}.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+@media(max-width:650px){.side{position:static;width:100%;min-height:auto}.app{display:block}.main{margin:0;width:100%;padding:18px}.cards{grid-template-columns:1fr}.form{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">Business<span>OS</span></div>
+  <nav class="nav">
+    <button class="active" data-page="dashboard">▦ Dashboard</button>
+    <button data-page="customers">👥 Customers</button>
+    <button data-page="leads">🎯 Leads</button>
+    <button data-page="quotations">▤ Quotations</button>
+    <button data-page="orders">📦 Orders</button>
+    <button data-page="vendors">🏭 Vendors</button>
+    <button data-page="finance">₹ Finance</button>
+    <button data-page="expenses">↘ Expenses</button>
+    <button data-page="reports">◔ Reports</button>
+  </nav>
+  <div style="position:absolute;bottom:20px;left:20px;right:20px;color:#94a3b8;font-size:11px">Local v1 • Data stays in this browser</div>
+</aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="top"><div><h1>Dashboard</h1><p>Business control room — updated from your records.</p></div><div class="actions"><button class="btn" onclick="exportData()">Export data</button><button class="btn primary" onclick="openAdd('orders')">+ New order</button></div></div>
+<div class="cards">
+<div class="card"><div class="label">Sales</div><div class="value" id="sales">₹0</div><div class="sub">Confirmed orders</div></div>
+<div class="card"><div class="label">Expected profit</div><div class="value" id="profit">₹0</div><div class="sub">Sales minus estimated cost</div></div>
+<div class="card"><div class="label">Receivables</div><div class="value" id="receivable">₹0</div><div class="sub">Customer balances</div></div>
+<div class="card"><div class="label">Active orders</div><div class="value" id="activeOrders">0</div><div class="sub">Not completed</div></div>
+</div>
+<div class="grid2">
+<div class="panel"><h3>Order pipeline</h3><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Value</th><th>Status</th></tr></thead><tbody id="dashOrders"></tbody></table></div>
+<div class="panel"><h3>Attention needed</h3><div id="alerts"></div></div>
+</div>
+</section>
+
+<section id="customers" class="page"><div class="top"><div><h1>Customers</h1><p>Central customer records and relationship history.</p></div><button class="btn primary" onclick="openAdd('customers')">+ Add customer</button></div><div class="toolbar"><input class="search" placeholder="Search customers..." oninput="renderCustomers(this.value)"></div><div class="panel"><table class="table"><thead><tr><th>Customer</th><th>Contact</th><th>Phone</th><th>Orders</th><th>Sales</th></tr></thead><tbody id="customerTable"></tbody></table></div></section>
+
+<section id="leads" class="page"><div class="top"><div><h1>Leads</h1><p>Track enquiries from first contact to won/lost.</p></div><button class="btn primary" onclick="openAdd('leads')">+ Add lead</button></div><div class="panel"><table class="table"><thead><tr><th>Lead</th><th>Requirement</th><th>Value</th><th>Status</th></tr></thead><tbody id="leadTable"></tbody></table></div></section>
+
+<section id="quotations" class="page"><div class="top"><div><h1>Quotations</h1><p>Prepare and track commercial offers.</p></div><button class="btn primary" onclick="openAdd('quotations')">+ New quotation</button></div><div class="panel"><table class="table"><thead><tr><th>Quote</th><th>Customer</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody id="quoteTable"></tbody></table></div></section>
+
+<section id="orders" class="page"><div class="top"><div><h1>Orders</h1><p>Follow every order through execution and delivery.</p></div><button class="btn primary" onclick="openAdd('orders')">+ New order</button></div><div class="panel"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Value</th><th>Cost</th><th>Margin</th><th>Status</th></tr></thead><tbody id="orderTable"></tbody></table></div></section>
+
+<section id="vendors" class="page"><div class="top"><div><h1>Vendors</h1><p>Suppliers, outsourced work and vendor performance.</p></div><button class="btn primary" onclick="openAdd('vendors')">+ Add vendor</button></div><div class="panel"><table class="table"><thead><tr><th>Vendor</th><th>Contact</th><th>Category</th><th>Rating</th><th>Outstanding</th></tr></thead><tbody id="vendorTable"></tbody></table></div></section>
+
+<section id="finance" class="page"><div class="top"><div><h1>Finance</h1><p>Money coming in, going out and currently outstanding.</p></div><button class="btn primary" onclick="openAdd('finance')">+ Record payment</button></div><div class="cards"><div class="card"><div class="label">Receivables</div><div class="value" id="finRec">₹0</div></div><div class="card"><div class="label">Payables</div><div class="value" id="finPay">₹0</div></div><div class="card"><div class="label">Expenses</div><div class="value" id="finExp">₹0</div></div><div class="card"><div class="label">Net cash movement</div><div class="value" id="finNet">₹0</div></div></div><div class="panel" style="margin-top:14px"><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Party</th><th>Amount</th><th>Notes</th></tr></thead><tbody id="financeTable"></tbody></table></div></section>
+
+<section id="expenses" class="page"><div class="top"><div><h1>Expenses</h1><p>Record operating expenses so margins are real, not guessed.</p></div><button class="btn primary" onclick="openAdd('expenses')">+ Add expense</button></div><div class="panel"><table class="table"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead><tbody id="expenseTable"></tbody></table></div></section>
+
+<section id="reports" class="page"><div class="top"><div><h1>Reports</h1><p>Management view of the business.</p></div></div><div class="grid2"><div class="panel"><h3>Sales by customer</h3><div id="customerReport"></div></div><div class="panel"><h3>Order status</h3><div id="statusReport"></div></div></div></section>
+</main></div>
+
+<div id="modal" style="display:none;position:fixed;inset:0;background:#0008;padding:30px;overflow:auto">
+<div style="background:#fff;max-width:620px;margin:4vh auto;padding:22px;border-radius:12px">
+<div style="display:flex;justify-content:space-between;align-items:center"><h2 id="modalTitle" style="margin:0"></h2><button class="btn" onclick="closeModal()">×</button></div>
+<form id="modalForm" class="form" style="margin-top:18px"></form>
+<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveForm()">Save</button></div>
+</div></div>
+
+<script>
+const KEY='businessos_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{
+customers:[{name:'Demo Customer',contact:'Raj Kumar',phone:'9999999999'}],
+leads:[],quotations:[],orders:[],vendors:[],finance:[],expenses:[]
+};
+let currentType=null;
+const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+const id=p=>p+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
+function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function nav(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(page).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===page));renderAll()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>nav(b.dataset.page));
+function openAdd(type){currentType=type;document.getElementById('modal').style.display='block';document.getElementById('modalTitle').textContent='Add '+type.slice(0,1).toUpperCase()+type.slice(1);const f=document.getElementById('modalForm');f.innerHTML='';
+const fields={
+customers:[['name','Customer name','text'],['contact','Contact person','text'],['phone','Phone','text'],['email','Email','email'],['address','Address','text']],
+leads:[['name','Customer / lead','text'],['requirement','Requirement','text'],['value','Expected value','number'],['status','Status','select','New,Contacted,Quotation,Negotiation,Won,Lost']],
+quotations:[['customer','Customer','text'],['amount','Quotation amount','number'],['cost','Estimated cost','number'],['status','Status','select','Draft,Sent,Negotiation,Accepted,Rejected']],
+orders:[['customer','Customer','text'],['value','Selling price','number'],['cost','Estimated/actual cost','number'],['status','Status','select','Confirmed,Procurement,Production,Quality Check,Ready,Dispatched,Delivered,Completed']],
+vendors:[['name','Vendor name','text'],['contact','Contact person','text'],['category','Category','text'],['rating','Rating / 5','number'],['outstanding','Outstanding payable','number']],
+finance:[['date','Date','date'],['type','Type','select','Customer payment,Vendor payment,Other income,Other outgoing'],['party','Party','text'],['amount','Amount','number'],['notes','Notes','text']],
+expenses:[['date','Date','date'],['category','Category','text'],['description','Description','text'],['amount','Amount','number']]
+}[type]||[];
+fields.forEach(([n,l,t,opt])=>{let d=document.createElement('div');if(n==='address'||n==='notes')d.className='full';let el=t==='select'?`<select id="f_${n}">${opt.split(',').map(x=>`<option>${x}</option>`).join('')}</select>`:`<input id="f_${n}" type="${t}" ${t==='number'?'min="0"':''}>`;d.innerHTML=`<label>${l}</label>${el}`;f.appendChild(d)});
+}
+function closeModal(){document.getElementById('modal').style.display='none'}
+function saveForm(){const type=currentType;const obj={id:id(type),created:new Date().toISOString()};document.querySelectorAll('#modalForm input,#modalForm select').forEach(x=>obj[x.id.slice(2)]=x.value);db[type].push(obj);save();closeModal()}
+function renderCustomers(q=''){const a=db.customers.filter(x=>(x.name+' '+(x.contact||'')).toLowerCase().includes(q.toLowerCase()));document.getElementById('customerTable').innerHTML=a.map(c=>{const os=db.orders.filter(o=>o.customer===c.name);return `<tr><td>${c.name}</td><td>${c.contact||'-'}</td><td>${c.phone||'-'}</td><td>${os.length}</td><td>${money(os.reduce((s,o)=>s+Number(o.value||0),0))}</td></tr>`}).join('')||`<tr><td colspan="5" class="empty">No customers yet.</td></tr>`}
+function badge(s){let cls=['Completed','Accepted','Won','Delivered'].includes(s)?'good':['Rejected','Lost'].includes(s)?'bad':'warn';return `<span class="badge ${cls}">${s||'—'}</span>`}
+function renderAll(){
+const sales=db.orders.reduce((s,o)=>s+Number(o.value||0),0), cost=db.orders.reduce((s,o)=>s+Number(o.cost||0),0), profit=sales-cost;
+document.getElementById('sales').textContent=money(sales);document.getElementById('profit').textContent=money(profit);
+const rec=db.orders.reduce((s,o)=>s+Number(o.value||0),0)-db.finance.filter(x=>x.type==='Customer payment').reduce((s,x)=>s+Number(x.amount||0),0);
+document.getElementById('receivable').textContent=money(Math.max(0,rec));document.getElementById('activeOrders').textContent=db.orders.filter(o=>o.status!=='Completed').length;
+document.getElementById('dashOrders').innerHTML=db.orders.slice(-8).reverse().map(o=>`<tr><td>${o.id}</td><td>${o.customer}</td><td>${money(o.value)}</td><td>${badge(o.status)}</td></tr>`).join('')||`<tr><td colspan="4" class="empty">No orders yet.</td></tr>`;
+let alerts=[];db.orders.filter(o=>o.status!=='Completed').slice(0,5).forEach(o=>alerts.push(`<div class="notice"><b>${o.id}</b> — ${o.customer}<br>Current status: ${o.status}</div>`));document.getElementById('alerts').innerHTML=alerts.join('')||'<div class="empty">Nothing requiring attention.</div>';
+renderCustomers();
+document.getElementById('leadTable').innerHTML=db.leads.map(x=>`<tr><td>${x.name}</td><td>${x.requirement}</td><td>${money(x.value)}</td><td>${badge(x.status)}</td></tr>`).join('')||`<tr><td colspan="4" class="empty">No leads yet.</td></tr>`;
+document.getElementById('quoteTable').innerHTML=db.quotations.map(x=>`<tr><td>${x.id}</td><td>${x.customer}</td><td>${money(x.amount)}</td><td>${badge(x.status)}</td><td><button class="btn" onclick="convertQuote('${x.id}')">Convert to order</button></td></tr>`).join('')||`<tr><td colspan="5" class="empty">No quotations yet.</td></tr>`;
+document.getElementById('orderTable').innerHTML=db.orders.map(x=>`<tr><td>${x.id}</td><td>${x.customer}</td><td>${money(x.value)}</td><td>${money(x.cost)}</td><td>${money(Number(x.value||0)-Number(x.cost||0))}</td><td>${badge(x.status)}</td></tr>`).join('')||`<tr><td colspan="6" class="empty">No orders yet.</td></tr>`;
+document.getElementById('vendorTable').innerHTML=db.vendors.map(x=>`<tr><td>${x.name}</td><td>${x.contact||'-'}</td><td>${x.category||'-'}</td><td>${x.rating||'-'}</td><td>${money(x.outstanding)}</td></tr>`).join('')||`<tr><td colspan="5" class="empty">No vendors yet.</td></tr>`;
+const exp=db.expenses.reduce((s,x)=>s+Number(x.amount||0),0), incoming=db.finance.filter(x=>['Customer payment','Other income'].includes(x.type)).reduce((s,x)=>s+Number(x.amount||0),0), outgoing=db.finance.filter(x=>['Vendor payment','Other outgoing'].includes(x.type)).reduce((s,x)=>s+Number(x.amount||0),0);
+document.getElementById('finRec').textContent=money(Math.max(0,rec));document.getElementById('finPay').textContent=money(db.vendors.reduce((s,x)=>s+Number(x.outstanding||0),0));document.getElementById('finExp').textContent=money(exp);document.getElementById('finNet').textContent=money(incoming-outgoing-exp);
+document.getElementById('financeTable').innerHTML=db.finance.map(x=>`<tr><td>${x.date||''}</td><td>${x.type}</td><td>${x.party||''}</td><td>${money(x.amount)}</td><td>${x.notes||''}</td></tr>`).join('')||`<tr><td colspan="5" class="empty">No transactions yet.</td></tr>`;
+document.getElementById('expenseTable').innerHTML=db.expenses.map(x=>`<tr><td>${x.date||''}</td><td>${x.category}</td><td>${x.description}</td><td>${money(x.amount)}</td></tr>`).join('')||`<tr><td colspan="4" class="empty">No expenses yet.</td></tr>`;
+const by={};db.orders.forEach(o=>by[o.customer]=(by[o.customer]||0)+Number(o.value||0));document.getElementById('customerReport').innerHTML=Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee"><span>${k}</span><b>${money(v)}</b></div>`).join('')||'<div class="empty">No sales data.</div>';
+const st={};db.orders.forEach(o=>st[o.status]=(st[o.status]||0)+1);document.getElementById('statusReport').innerHTML=Object.entries(st).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee"><span>${k}</span><b>${v}</b></div>`).join('')||'<div class="empty">No orders.</div>';
+}
+function convertQuote(qid){const q=db.quotations.find(x=>x.id===qid);if(!q)return;db.orders.push({id:id('ord'),customer:q.customer,value:q.amount,cost:q.cost,status:'Confirmed',created:new Date().toISOString()});q.status='Accepted';save();alert('Quotation converted to order.')}
+function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='businessos-backup.json';a.click();URL.revokeObjectURL(a.href)}
+renderAll();
+</script>
+</body>
+</html>
